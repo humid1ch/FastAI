@@ -56,5 +56,4 @@ def qwen_vl_max_latest():
         openai_api_key=json_data["qwen_vl_key"], 
         base_url="https://dashscope.aliyuncs.com/compatible-mode/v1" 
     )
-
 """qwen_vl_max 百炼的api"""

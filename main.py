@@ -1,44 +1,10 @@
-import Global.llm
-import Global.prompts
-import Global.test
-from langchain_core.output_parsers import StrOutputParser
-import Global.until
-from langchain_core.documents  import Document  
+from  Global.rag  import RAG
+from  Global.test import *
+from  Global.until import embeddings
+txt=txt_斗破苍穹1()
+from langchain_huggingface import HuggingFaceEmbeddings 
+embed = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2",cache_folder="./models",model_kwargs = {'device': 'cuda'})
 
-llm=Global.llm.deepseek_by_ds("deepseek-chat")
-
-txt=Global.test.txt_斗破苍穹1()
-print(txt)
-print(len(txt))
-
-Prompt=Global.prompts.txtsliptPrompt(txt,len(txt),"人物，地点，事件")
-
-import json
-data=json.loads(Global.until.extract_json_raw(llm.invoke(Prompt).content))
-print(data)
-
-
-print(data["length"])
-array=[]
-for object in data["data"]:
-    summary=object["s"]
-    begin=object["b"]
-    end=object["e"]
-    print(summary,begin,end)
-    array.append(Document(page_content=summary,metadata={"rawdata": txt[begin:end]}))
-print(array)  
-
-
-# Prompt=Global.prompts.txtsliptPrompt2(txt)
-# print(Prompt)
-# import json
-# data=json.loads(Global.until.extract_json_raw(llm.invoke(Prompt).content))
-# print(data)
-# array=[]
-# for object in data["data"]:
-#     summary=object["s"]
-#     begin=object["b"]
-#     end=object["e"]
-#     print(summary,begin,end)
-#     array.append(Document(page_content=summary,metadata={"rawdata": txt[begin:end]}))
-# print(array) 
+rag=RAG("./chroma_db",embed)
+rag.storage_txt(txt,"人物事件","斗破苍穹第一章",is_Async=False)
+print(rag.query("萧薰儿斗气是几段"))

@@ -1,9 +1,6 @@
-import os 
-from PIL import Image 
-import io 
-import base64
-
 def baseimage(data):
+    #默认编码器
+    import base64
     return base64.b64encode(data).decode("utf-8")
 
 def adjust_image(image_path, model_name="qwen-vl-max" , encodeFun = baseimage, output_path=None,max_attempts=3):
@@ -24,6 +21,8 @@ def adjust_image(image_path, model_name="qwen-vl-max" , encodeFun = baseimage, o
                 "qwen2-vl-72b-instruct", "qwen2-vl-7b-instruct", "qwen2-vl-2b-instruct"
                 "qwen-vl-max-0201", "qwen-vl-plus"
     """
+    import io 
+    from PIL import Image 
     # 定义模型像素要求 
     MODEL_REQUIREMENTS = {
         "12m_models": {
@@ -133,3 +132,48 @@ def extract_json_raw(text):
     json_pattern = r'(\{(?:[^{}]|(?R))*\}|\[(?:[^\[\]]|(?R))*\])'
     match = regex.search(json_pattern,  text, regex.DOTALL)
     return match.group(0)  if match else None 
+
+def embeddings():
+    from langchain_huggingface import HuggingFaceEmbeddings 
+    return  HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2",cache_folder="D:/wr/langchain/src/models",model_kwargs = {'device': 'cuda'})
+
+def extract_paragraphs(content_str, json_str):
+    """
+        根据之前约定的json格式划分原始文本
+    """
+    import json
+    # 解析JSON字符串
+    try:
+        data = json.loads(json_str)
+    except json.JSONDecodeError:
+        raise ValueError("Invalid JSON string")
+    
+    # 获取data列表
+    data_list = data.get("data", [])
+    if not data_list:
+        return []
+    
+    result = []
+    
+    for item in data_list:
+        b = item.get("b", "")
+        e = item.get("e", "")
+        
+        if not b or not e:
+            continue
+        
+        # 查找开始和结束位置
+        start_idx = content_str.find(b)
+        end_idx = content_str.find(e)
+        
+        if start_idx == -1 or end_idx == -1:
+            continue
+        
+        # 计算结束位置，加上结束字符串的长度
+        end_idx += len(e)
+        
+        # 提取段落
+        paragraph = content_str[start_idx:end_idx]
+        result.append(paragraph)
+    
+    return result
