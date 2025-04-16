@@ -26,8 +26,9 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 images_path = os.path.join(current_dir, "images")
 all_images = load_images(images_path)
 
-# while True:
+# # while True:
 images_infos = rag.extract_images(all_images)
 print(images_infos)
-image_infos_json = json.loads(images_infos)
-print(image_infos_json)
+rag.storage_json(json_raw=images_infos, key="", is_async=False)
+
+print(rag.query("什么是共同富裕? 共同富裕的内涵是什么?"))
