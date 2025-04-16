@@ -1,4 +1,7 @@
+.idea
+chroma_db
+chroma_image_db
 config
 models
-chroma_db
+images
 test_image
