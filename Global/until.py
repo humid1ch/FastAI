@@ -132,11 +132,23 @@ def extract_json_raw(text):
     json_pattern = r'(\{(?:[^{}]|(?R))*\}|\[(?:[^\[\]]|(?R))*\])'
     match = regex.search(json_pattern,  text, regex.DOTALL)
     return match.group(0)  if match else None 
-
-def embeddings():
+def defaultembeddings(): 
+    import os 
+    # 临时禁用数据集下载、模型下载和 Hub 相关请求 
+    os.environ["HF_DATASETS_OFFLINE"]   = "1" 
+    os.environ["TRANSFORMERS_OFFLINE"]   = "1" 
+    os.environ["HF_HUB_OFFLINE"]   = "1" 
+ 
     from langchain_huggingface import HuggingFaceEmbeddings 
-    return  HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2",cache_folder="D:/wr/langchain/src/models",model_kwargs = {'device': 'cuda'})
-
+    # 修正 model_kwargs 的语法错误 
+    ret =  HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2", cache_folder="D:/wr/langchain/src/models", model_kwargs = {'device': 'cuda'}) 
+ 
+    # 恢复在线模式 
+    os.environ["HF_DATASETS_OFFLINE"]   = "0" 
+    os.environ["TRANSFORMERS_OFFLINE"]   = "0" 
+    os.environ["HF_HUB_OFFLINE"]   = "0" 
+ 
+    return ret 
 def extract_paragraphs(content_str, json_str):
     """
         根据之前约定的json格式划分原始文本

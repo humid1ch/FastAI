@@ -1,4 +1,4 @@
-Global/config
+config
 models
 chroma_db
 test_image
