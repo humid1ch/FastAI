@@ -214,7 +214,7 @@ def extract_json_raw(text):
     return match.group(0) if match else None
 
 
-def defaultembeddings(): 
+def default_embedding(): 
     import os 
     # 临时禁用数据集下载、模型下载和 Hub 相关请求 
     os.environ["HF_DATASETS_OFFLINE"]   = "1" 

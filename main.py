@@ -3,13 +3,7 @@ import os
 from langchain_community.embeddings import DashScopeEmbeddings
 
 from  Global.rag  import RAG
-from  Global.test import *
 from  Global.utils import load_images
-
-# txt=txt_斗破苍穹1()
-# from langchain_huggingface import HuggingFaceEmbeddings
-# embed = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2",cache_folder="./models")
-from dashscope import api_key
 
 embeddings = DashScopeEmbeddings(
     model="text-embedding-v3",

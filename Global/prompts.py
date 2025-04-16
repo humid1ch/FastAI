@@ -1,28 +1,4 @@
-from langchain_core.messages import SystemMessage, HumanMessage
-from langchain_core.prompts import ChatPromptTemplate
-
-
-def AbstractsPrompt(topic: str, text: str, format: str):
-    """
-    摘要提示词
-
-    args
-            topic 标题
-            text 文本
-            format 格式
-    Prompt
-            system:  摘要用户这个关于{topic}的文档, 格式如下{format}
-            user:    帮我总结这个文档的内容, 文档内容：{text}
-    """
-    SystemMessagePromptT = "摘要用户这个关于{topic}的文档, 格式如下 {format}"
-    HumanMessagePromptT = "帮我总结这个文档的内容, 文档内容：{text}。"
-    ChatPromptT = ChatPromptTemplate.from_messages(
-        [("system", SystemMessagePromptT), ("user", HumanMessagePromptT)]
-    )
-    return ChatPromptT.invoke({"topic": topic, "text": text, " format": format})
-
-
-def ImagePrompt_by_url(image_url: str, query: str):
+def image_prompt_by_url(image_url: str, query: str):
     """
     传输图片提示词
 
@@ -37,6 +13,7 @@ def ImagePrompt_by_url(image_url: str, query: str):
                     {"type": "text", "text": "{query}"}
                     ]
     """
+    from langchain_core.prompts import ChatPromptTemplate   
     ChatPromptT = ChatPromptTemplate.from_messages(
         [
             ("system", "You are a helpful assistant."),
@@ -52,7 +29,7 @@ def ImagePrompt_by_url(image_url: str, query: str):
     return ChatPromptT.invoke({"query": query})
 
 
-def ImagePrompt_by_path(path: str, query: str, model: str = "qwen-vl-max"):
+def image_prompt_by_path(path: str, query: str, model: str = "qwen-vl-max"):
     """
     自动编码传输图片文件
 
@@ -74,7 +51,7 @@ def ImagePrompt_by_path(path: str, query: str, model: str = "qwen-vl-max"):
                     ]
     """
     import Global.utils as imagedata
-
+    from langchain_core.prompts import ChatPromptTemplate
     image_data, image_path = imagedata.adjust_image(path, model)
     ChatPromptT = ChatPromptTemplate.from_messages(
         [
@@ -95,6 +72,9 @@ def ImagePrompt_by_path(path: str, query: str, model: str = "qwen-vl-max"):
 
 
 def image_recognition_prompt(image_type, base64_image, image_name):
+    from langchain_core.prompts import ChatPromptTemplate
+    from langchain_core.messages  import SystemMessage 
+    from langchain_core.messages import HumanMessage
     return [
         SystemMessage(
             content=[
@@ -172,6 +152,7 @@ def text_split_prompt1(
             format json格式        被修改就要重新测试
     Prompt
     """
+    from langchain_core.prompts import ChatPromptTemplate
     ChatPromptT = ChatPromptTemplate.from_messages(
         [
             (
@@ -262,7 +243,7 @@ def text_split_prompt2(
     文本长度: {length}
     文本内容: {text}
     """
-
+    from langchain_core.prompts import ChatPromptTemplate
     ChatPromptT = ChatPromptTemplate.from_messages(
         [
             ("system", "你是一个文本处理AI，需要按语义划分段落并返回JSON。"),
@@ -308,6 +289,7 @@ def text_split_prompt3(
             format json格式
     Prompt
     """
+    from langchain_core.prompts import ChatPromptTemplate
     ChatPromptT = ChatPromptTemplate.from_messages(
         [
             (
@@ -363,6 +345,7 @@ def text_split_prompt(
             format json格式
     Prompt
     """
+    from langchain_core.prompts import ChatPromptTemplate
     ChatPromptT = ChatPromptTemplate.from_messages(
         [
             (
@@ -384,7 +367,7 @@ def text_split_prompt(
     return ChatPromptT.invoke(
         {"text": text, "length": length, "key": key, "format": format}
     )
-def json_slipt_Prompt(json:str,length:int,key:str,format:str="""
+def json_slipt_prompt(json:str,length:int,key:str,format:str="""
     注意b与e里面的信息是帮助段落文本定位的具有唯一性。并且要是处理的文本中的段落内容，不可以杜撰,保持原样输出。
     解释"合并来源" 就是划分的段落使用了多个content的内容，来保证语义分割的连续性。如果使用来多个来content只需要合并他们的文件名，来源，日期为为一个json数组即可。
     json格式为{
@@ -488,6 +471,7 @@ def json_slipt_Prompt(json:str,length:int,key:str,format:str="""
                             format json格式
             Prompt
             """
+            from langchain_core.prompts import ChatPromptTemplate
             ChatPromptT = ChatPromptTemplate.from_messages([ 
             ("system", "你是一个按照语义划分文本并压缩这些按照语义划分的文本内容的函数，你要按照给出的json格式返回对应的字符内容"),
             ("user",

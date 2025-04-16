@@ -1,12 +1,11 @@
 from langchain_core.documents import Document
 from langchain_chroma import Chroma
 
-from Global.utils import defaultembeddings, adjust_image, get_image_type, extract_json_raw,extract_paragraphs
 from Global import prompts, llm  
+from Global.utils import default_embedding, adjust_image, get_image_type, extract_json_raw,extract_paragraphs
 
 from datetime import datetime
 import json  
-
 
 class RAG:
     def __init__(self,persist_directory,mutil_model:str = "qwen-vl-max-latest",embeddings=None):
@@ -16,7 +15,7 @@ class RAG:
         if embeddings==None: 
             self.db=Chroma(
             persist_directory=persist_directory,
-            embedding_function=defaultembeddings() 
+            embedding_function=default_embedding() 
             )
         else:
             self.db=Chroma(
@@ -25,14 +24,7 @@ class RAG:
             )
 
         
-    def storage_txt(self,txts : str,key:str,source:dict,date=datetime.now().strftime("%Y-%m-%d"),is_Async = True):
-        #ai分割
-        import Global.prompts
-        Prompt=Global.prompts.text_split_prompt(txts,len(txts),key)
-        import Global.llm
-        llm=Global.llm.deepseek_by_ds("deepseek-chat")
-        #json 映射 txt ->Documents
-        json_raw=extract_json_raw(llm.invoke(Prompt).content)
+    
     def extract_images(self, images_path: list[str]):
         import json
         from json import JSONDecodeError
@@ -83,7 +75,6 @@ class RAG:
         image_info = extract_json_raw(self.mutil_llm.invoke(message).content)
 
         return image_info
-
     def storage_txt(
         self,
         texts: str,
@@ -93,15 +84,12 @@ class RAG:
         is_async=True,
     ):
         # ai分割
-        import Global.prompts
-
-        split_prompt = Global.prompts.text_split_prompt(texts, len(texts), key)
+        split_prompt = prompts.text_split_prompt(texts, len(texts), key)
 
         # json 映射 txt ->Documents
         json_raw = extract_json_raw(
             self.chat_llm.invoke(split_prompt).content
         )
-        import json
 
         try:
             Json = json.loads(json_raw)
@@ -130,7 +118,7 @@ class RAG:
                 full_text = "".join(seg.get("context", "") for seg in input_json)
                 
                 # 3. 生成分割提示
-                prompt = prompts.json_slipt_Prompt(json_raw, len(full_text), key)
+                prompt = prompts.json_slipt_prompt(json_raw, len(full_text), key)
                 llm_instance = llm.deepseek_by_ds("deepseek-chat")  # 统一模型名称
                 
                 # 4. 处理LLM响应
@@ -185,10 +173,10 @@ class RAG:
 
         # 8. 存储文档
         if documents:
-            self.storage_Document(documents, is_async)
+            self.storage_document(documents, is_async)
         else:
             print("[Attempt {}] No documents to store.".format(attempts+1))
-    def storage_Document(self,documents : list[Document] | str ,is_async = True):
+    def storage_document(self,documents : list[Document] | str ,is_async = True):
         if(is_async):
             self.db.aadd_documents(documents)
         else:
