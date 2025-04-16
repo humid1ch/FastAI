@@ -33,6 +33,7 @@ class RAG:
         llm=Global.llm.deepseek_by_ds("deepseek-chat")
         #json 映射 txt ->Documents
         json_raw=extract_json_raw(llm.invoke(Prompt).content)
+
     def extract_images(self, images_path: list[str]):
         import json
         from json import JSONDecodeError
@@ -116,6 +117,7 @@ class RAG:
         for i in range(len(Json["data"])):
             Documents.append(Document(page_content=Json["data"][i]["s"], metadata={"source": source, "date": date,"rawdata":txts_splits[i]}))     
         self.storage_Document(Documents,is_async)
+
     def storage_json(self, json_raw: str, key: str, is_async=True, max_retries=3):
         documents = []  # 确保变量初始化
         attempts = 0
@@ -188,6 +190,7 @@ class RAG:
             self.storage_Document(documents, is_async)
         else:
             print("[Attempt {}] No documents to store.".format(attempts+1))
+
     def storage_Document(self,documents : list[Document] | str ,is_async = True):
         if(is_async):
             self.db.aadd_documents(documents)

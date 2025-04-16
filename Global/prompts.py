@@ -127,14 +127,14 @@ def image_recognition_prompt(image_type, base64_image, image_name):
                         2. 图片的文件名在"filename"键的值中描述。
                         3. 截图的时间在"date"键的值中描述。
                         4. 图片的所属来源(PPT文件名及页码), 在"source"键的值中描述。
-                        7. 图片的完整详细内容在“content”键的值中描述
+                        7. 图片的完整详细内容在“context”键的值中描述
                         8. 如果图片中存在数学公式, 请将公式输出为完整有效的 LaTeX 语法格式
                         即完整的输出格式如下：
                         '{{
-                            "filename": "不断促进全体人民共同富裕_pptx_第三页.jpeg"
-                            "date": "2025-01-01 13:44:38"
+                            "filename": "不断促进全体人民共同富裕_pptx_第三页.jpeg",
+                            "context" : "xxxxxxxxx",
                             "source": "不断促进全体人民共同富裕_pptx_第3页",
-                            "content" : "xxxxxxxxx"
+                            "date": "2025-01-01 13:44:38"
                         }}'
                         """,
                 },
@@ -384,6 +384,7 @@ def text_split_prompt(
     return ChatPromptT.invoke(
         {"text": text, "length": length, "key": key, "format": format}
     )
+
 def json_slipt_Prompt(json:str,length:int,key:str,format:str="""
     注意b与e里面的信息是帮助段落文本定位的具有唯一性。并且要是处理的文本中的段落内容，不可以杜撰,保持原样输出。
     解释"合并来源" 就是划分的段落使用了多个content的内容，来保证语义分割的连续性。如果使用来多个来content只需要合并他们的文件名，来源，日期为为一个json数组即可。
