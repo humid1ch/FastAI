@@ -1,4 +1,7 @@
-Global/config
-models
+.idea
 chroma_db
+chroma_image_db
+config
+models
+images
 test_image
