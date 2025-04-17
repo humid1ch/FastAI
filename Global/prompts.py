@@ -495,3 +495,20 @@ def json_split_prompt(
             "format": format,
         }
     )
+
+
+def llm_answer_prompt():
+    from langchain_core.prompts import ChatPromptTemplate
+
+    return ChatPromptTemplate.from_template(
+        template="""
+        仅根据以下上下文回答问题，其中上下文为：{context}。
+        附加要求：
+        1. 所有输出均以绝对纯正的原始 JSON 字符串格式输出。输出内容禁止以任何形式的代码块进行封装。
+        2. 问题的答案在“answer”键的值中描述。
+        3. “answer”键的值不应包含诸如“基于上下文”、“基于附加信息”等内容。
+        4. “answer”键的值不应指明答案中引用数据的来源。
+        5. 回答问题后，使用单独的“source”键的值描述答案中引用数据的完整的、所有的来源, 即使引用数据重复（必须包含文件名和页码）。
+        问题：{question}
+        """
+    )

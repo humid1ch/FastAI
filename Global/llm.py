@@ -52,6 +52,7 @@ def mutil_llm(model: str = "qwen-vl-max-latest"):
     import io
     import json
 
+    # 阿里云百炼视觉模型
     ALI_BAILIAN_MUTIL_MODELS = [
         "qwen-vl-max",
         "qwen-vl-max-latest",
@@ -80,7 +81,7 @@ def mutil_llm(model: str = "qwen-vl-max-latest"):
         "llama-4-maverick-17b-128e-instruct",
     ]
 
-    # 豆包模型, 需要账号开通才能使用
+    # 豆包视觉模型, 需要账号开通才能使用
     DOUBAO_MUTIL_MODELS = [
         "doubao-1.5-vision-pro-32k-250115",
         "doubao-vision-pro-32k-241028",
