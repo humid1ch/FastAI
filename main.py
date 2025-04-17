@@ -22,13 +22,17 @@ embeddings = DashScopeEmbeddings(
 
 rag = RAG(persist_directory="./chroma_image_db", embeddings=embeddings)
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-images_path = os.path.join(current_dir, "images")
-all_images = load_images(images_path)
+# current_dir = os.path.dirname(os.path.abspath(__file__))
+# images_path = os.path.join(current_dir, "images")
+# all_images = load_images(images_path)
+# images_infos = rag.extract_images(all_images)
 
-# # while True:
-images_infos = rag.extract_images(all_images)
+# 使用 with 语句自动管理文件关闭
+with open('./不断推进全体人民共同富裕.txt', 'r', encoding='utf-8') as file:
+    images_infos = file.read()  # 读取全部内容到字符串变量 text
+
 print(images_infos)
+
 rag.storage_json(json_raw=images_infos, key="", is_async=False)
 
 print(rag.query("什么是共同富裕? 共同富裕的内涵是什么?"))

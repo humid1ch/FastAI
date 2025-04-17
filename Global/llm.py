@@ -1,7 +1,4 @@
 """deepseek_by_ds官方的api"""
-from dashscope import api_key
-
-
 def deepseek_by_ds(model:str='deepseek-reasoner' ):
     """官方的api"""
     import io 
@@ -14,9 +11,10 @@ def deepseek_by_ds(model:str='deepseek-reasoner' ):
     #deepseek 官方的api
     return BaseChatOpenAI(
         model=model,  # 使用DeepSeek聊天模型
-        api_key=json_data["deepseek_key"],  # 替换为你的API易API密钥
+        # api_key=json_data["deepseek_key"],  # 替换为你的API易API密钥
+        api_key="sk-7dfda6af2f9b4cfdbff699f1bdc55263",
         openai_api_base='https://api.deepseek.com',  # API易的端点
-        max_tokens=1024  # 设置最大生成token数
+        # max_tokens=1024  # 设置最大生成token数
         )
 """deepseek_by_ds官方的api"""
 

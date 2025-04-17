@@ -197,6 +197,23 @@ def adjust_image(
         return None
 
 
+# def extract_json_raw(text):
+#     """
+#     从文本中提取原始JSON字符串（不解析）
+#
+#     参数:
+#         text (str): 可能包含JSON的文本
+#
+#     返回:
+#         str: 提取到的原始JSON字符串，若无则返回None
+#     """
+#     import regex
+#
+#     json_pattern = r"(\{(?:[^{}]|(?R))*\}|\[(?:[^\[\]]|(?R))*\])"
+#     # json_pattern = r"\{(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*\}|\[(?:[^\[\]]|\[(?:[^\[\]]|\[[^\[\]]*\])*\])*\]"
+#     match = regex.search(json_pattern, text, regex.DOTALL)
+#     return match.group(0) if match else None
+
 def extract_json_raw(text):
     """
     从文本中提取原始JSON字符串（不解析）
@@ -207,11 +224,16 @@ def extract_json_raw(text):
     返回:
         str: 提取到的原始JSON字符串，若无则返回None
     """
-    import regex
+    # 查找第一个 `{` 和最后一个 `}`
+    start_idx = text.find('{')
+    end_idx = text.rfind('}')
 
-    json_pattern = r"(\{(?:[^{}]|(?R))*\}|\[(?:[^\[\]]|(?R))*\])"
-    match = regex.search(json_pattern, text, regex.DOTALL)
-    return match.group(0) if match else None
+    # 如果没有找到 `{` 或 `}`，返回 None
+    if start_idx == -1 or end_idx == -1 or end_idx <= start_idx:
+        return None
+
+    # 返回包含从第一个 `{` 到最后一个 `}` 的部分
+    return text[start_idx:end_idx + 1]
 
 
 def embeddings():

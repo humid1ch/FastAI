@@ -3,26 +3,30 @@ from langchain_chroma import Chroma
 
 import Global.prompts
 from Global.prompts import image_recognition_prompt
-from Global.utils import embeddings, adjust_image, get_image_type, extract_json_raw, extract_paragraphs
+from Global.utils import (
+    embeddings,
+    adjust_image,
+    get_image_type,
+    extract_json_raw,
+    extract_paragraphs,
+)
+from Global.llm import mutil_llm, deepseek_by_ds
 from datetime import datetime
+import json
+from json import JSONDecodeError
 
 
 class RAG:
     def __init__(
         self, persist_directory, embeddings, mutil_model: str = "qwen-vl-max-latest"
     ):
-        import Global.llm
-
-        self.mutil_llm = Global.llm.mutil_llm(model=mutil_model)
-        self.chat_llm = Global.llm.deepseek_by_ds("deepseek-chat")
+        self.mutil_llm = mutil_llm(model=mutil_model)
+        self.chat_llm = deepseek_by_ds("deepseek-chat")
         self.db = Chroma(
             persist_directory=persist_directory, embedding_function=embeddings
         )
 
     def extract_images(self, images_path: list[str]):
-        import json
-        from json import JSONDecodeError
-
         image_infos = []
         for image_path in images_path:
             try:
@@ -30,43 +34,57 @@ class RAG:
                 image_infos.append(json.loads(image_info))
             except JSONDecodeError as e:
                 import regex
+
                 # 如果content中存在LaTeX公式, 因为公式中存在各种 \命令
                 # 可能会出现异常, json.loads()无法正常加载非法的转义字符
                 # 处理方法, 先获取到content, 将原始字符串的content设置为"", 先加载为json数据
                 # 然后清理获取到的content, 在赋值给json["content"], 完成json数据的获取
-                content_match = regex.search(r'"content": "(.*?)"(?=\s*})', image_info, regex.DOTALL)
+                # 获取 content 值
+                content_match = regex.search(
+                    r'"context": "(.*?)"(?=\s*,)', image_info, regex.DOTALL
+                )
                 if content_match:
                     content_value = content_match.group(1)
+
                 # 替换 content 为空字符串
                 modified_image_info = regex.sub(
-                    r'"content": ".*?"(?=\s*})',
-                    '"content": ""',
+                    r'"context": ".*?"(?=\s*,)',
+                    '"context": ""',
                     image_info,
-                    flags=regex.DOTALL
+                    flags=regex.DOTALL,
                 )
                 try:
                     image_info_cur = json.loads(modified_image_info)
                     # 匹配 LaTeX 命令（如 \frac, \mu, \sigma 等）
-                    latex_commands = regex.findall(r'\\([a-zA-Z]+)', content_value)
+                    latex_commands = regex.findall(r"\\([a-zA-Z]+)", content_value)
                     # 替换多余的 \，但保留合法的 LaTeX 命令
-                    cleaned = regex.sub(r'\\(?![a-zA-Z])', '', content_value)  # 删除无效的 \
-                    image_info_cur["content"] = cleaned
+                    cleaned = regex.sub(
+                        r"\\(?![a-zA-Z])", "", content_value
+                    )  # 删除无效的 \
+                    image_info_cur["context"] = cleaned
                     image_infos.append(image_info_cur)
                 except JSONDecodeError as e:
                     print("JSONDecoder Error")
-                    return ""
+                    continue
 
+        # json数据转字符串
         json_image_infos = json.dumps(image_infos, indent=4, ensure_ascii=False)
         return json_image_infos
 
     def extract_image_info(self, image_path: str):
-        base64_image, image_new_path = adjust_image(image_path=image_path, output_path="./adjust_images")
+        base64_image, image_new_path = adjust_image(
+            image_path=image_path, output_path="./adjust_images"
+        )
         image_type, image_name = get_image_type(image_new_path)
         print(
             f"image_new_path: {image_new_path}, image_type: {image_type}, image_name: {image_name}"
         )
         message = image_recognition_prompt(image_type, base64_image, image_name)
-        image_info = extract_json_raw(self.mutil_llm.invoke(message).content)
+        image_info = self.mutil_llm.invoke(message).content
+        try:
+            json.loads(image_info)
+        except JSONDecodeError as e:
+            image_info = extract_json_raw(image_info)
 
         return image_info
 
@@ -85,7 +103,6 @@ class RAG:
         json_raw = Global.utils.extract_json_raw(
             self.chat_llm.invoke(split_prompt).content
         )
-        import json
 
         try:
             Json = json.loads(json_raw)
@@ -112,25 +129,29 @@ class RAG:
         self.storage_documents(documents, is_async)
 
     def storage_json(self, json_raw: str, key: str, is_async=True, max_retries=3):
-        import json
         documents = []  # 确保变量初始化
         attempts = 0
         while attempts < max_retries:
             try:
                 # 1. 解析输入JSON
                 input_json = json.loads(json_raw, strict=False)
+                print(f"input_json item count {len(input_json)}")
                 if not isinstance(input_json, list):
                     raise ValueError("Input JSON should be a list of segments")
 
                 # 2. 构建完整文本
-                full_text = "".join(seg.get("context", "") for seg in input_json)
+                full_text = "\n".join(seg.get("context", "") for seg in input_json)
+                print(f"full_text {len(full_text)}")
 
                 # 3. 生成分割提示
-                prompt = Global.prompts.json_split_prompt(json_raw, len(full_text), key)
+                prompt = Global.prompts.json_split_prompt(
+                    json=json_raw, context=full_text, length=len(full_text), key=key
+                )
                 llm_instance = self.chat_llm  # 统一模型名称
 
                 # 4. 处理LLM响应
                 response = llm_instance.invoke(prompt)
+                # print(response)
                 ret_json_raw = extract_json_raw(response.content)
 
                 # 5. 解析并验证响应
@@ -141,7 +162,9 @@ class RAG:
                 # 6. 分割文本并验证长度
                 txts_splits = extract_paragraphs(full_text, ret_json_raw)
                 if len(ret_json["data"]) != len(txts_splits):
-                    raise ValueError(f"Data length mismatch: {len(ret_json['data'])} vs {len(txts_splits)}")
+                    raise ValueError(
+                        f"Data length mismatch: {len(ret_json['data'])} vs {len(txts_splits)}"
+                    )
 
                 # 7. 构建文档集合
                 documents = []
@@ -158,15 +181,17 @@ class RAG:
 
                     # 构建文档
                     for j in range(len(data_item["src"])):
-                        documents.append(Document(
-                            page_content=data_item["sum"],
-                            metadata={
-                                "source": data_item["src"][j],
-                                "file": data_item["f"][j],
-                                "date": data_item["t"][j],
-                                "rawdata": txts_splits[i]
-                            }
-                        ))
+                        documents.append(
+                            Document(
+                                page_content=data_item["sum"],
+                                metadata={
+                                    "source": data_item["src"][j],
+                                    "file": data_item["f"][j],
+                                    "date": data_item["t"][j],
+                                    "rawdata": txts_splits[i],
+                                },
+                            )
+                        )
                 break  # 成功时退出循环
 
             except json.JSONDecodeError as e:
@@ -178,6 +203,8 @@ class RAG:
             except Exception as e:
                 print(f"[Attempt {attempts + 1}] 未知错误: {str(e)}")
                 attempts += 1
+
+        print(f"document count: {len(documents)}")
 
         # 8. 存储文档
         if documents:
@@ -192,4 +219,4 @@ class RAG:
             self.db.add_documents(documents)
 
     def query(self, query: str):
-        return self.db.similarity_search_with_score(query)
+        return self.db.similarity_search_with_score(query, k=10)
