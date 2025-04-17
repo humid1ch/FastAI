@@ -13,8 +13,8 @@ def image_prompt_by_url(image_url: str, query: str):
                     {"type": "text", "text": "{query}"}
                     ]
     """
-    from langchain_core.prompts import ChatPromptTemplate
 
+    from langchain_core.prompts import ChatPromptTemplate
     ChatPromptT = ChatPromptTemplate.from_messages(
         [
             ("system", "You are a helpful assistant."),
@@ -53,7 +53,6 @@ def image_prompt_by_path(path: str, query: str, model: str = "qwen-vl-max"):
     """
     import Global.utils as imagedata
     from langchain_core.prompts import ChatPromptTemplate
-
     image_data, image_path = imagedata.adjust_image(path, model)
     ChatPromptT = ChatPromptTemplate.from_messages(
         [
@@ -76,7 +75,6 @@ def image_prompt_by_path(path: str, query: str, model: str = "qwen-vl-max"):
 def image_recognition_prompt(image_type, base64_image, image_name):
     from langchain_core.messages import SystemMessage
     from langchain_core.messages import HumanMessage
-
     return [
         SystemMessage(
             content=[
@@ -155,7 +153,6 @@ def text_split_prompt1(
     Prompt
     """
     from langchain_core.prompts import ChatPromptTemplate
-
     ChatPromptT = ChatPromptTemplate.from_messages(
         [
             (
@@ -247,7 +244,6 @@ def text_split_prompt2(
     文本内容: {text}
     """
     from langchain_core.prompts import ChatPromptTemplate
-
     ChatPromptT = ChatPromptTemplate.from_messages(
         [
             ("system", "你是一个文本处理AI，需要按语义划分段落并返回JSON。"),
@@ -294,7 +290,6 @@ def text_split_prompt3(
     Prompt
     """
     from langchain_core.prompts import ChatPromptTemplate
-
     ChatPromptT = ChatPromptTemplate.from_messages(
         [
             (
@@ -305,7 +300,7 @@ def text_split_prompt3(
                 "user",
                 """
                  按一下步骤执行文本任务
-                        1按照标点符号、文本语义划分长度为{length}的文本,划分大小你自己确定,每个划分块彼此保留一些重叠的部分。
+                        1按照标点符号、文本语义划分长度为{length}的文本,划分大小你自己确定。
                         2提出每个文本的:压缩语义与原始文本 （压缩语义保留关键字：{key}）。
                         3按照指定的json格式输出:{format}         
                 txt:{text}
@@ -351,7 +346,6 @@ def text_split_prompt(
     Prompt
     """
     from langchain_core.prompts import ChatPromptTemplate
-
     ChatPromptT = ChatPromptTemplate.from_messages(
         [
             (
@@ -373,7 +367,6 @@ def text_split_prompt(
     return ChatPromptT.invoke(
         {"text": text, "length": length, "key": key, "format": format}
     )
-
 
 def json_split_prompt(
     json: str,
@@ -466,7 +459,6 @@ def json_split_prompt(
         Prompt
     """
     from langchain_core.prompts import ChatPromptTemplate
-
     ChatPromptT = ChatPromptTemplate.from_messages(
         [
             (

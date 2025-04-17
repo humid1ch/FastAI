@@ -22,8 +22,11 @@ from json import JSONDecodeError
 import regex
 import sqlite3
 
+from datetime import datetime
+import json  
 
 class RAG:
+
     def __init__(
         self,
         vector_persist_directory,
@@ -122,7 +125,6 @@ class RAG:
             image_info = extract_json_raw(image_info)
 
         return image_info
-
     def storage_txt(
         self,
         texts: str,
@@ -133,22 +135,20 @@ class RAG:
     ):
         # ai分割
         split_prompt = text_split_prompt(texts, len(texts), key)
-
         # json 映射 txt ->Documents
         json_raw = extract_json_raw(self.chat_llm.invoke(split_prompt).content)
-
         try:
             Json = json.loads(json_raw)
-        except (json.JSONDecodeError, TypeError) as e:
-            raise ValueError("无效的JSON数据") from e
-
-        texts_splits = extract_paragraphs(texts, json_raw)
-        if len(Json["data"]) != len(texts_splits):
-            print("len(Json)!=len(texts_splits)")
-            return
-
-        documents = []
+        except:
+            print("返回的json 解析出错")
+            return 
+        txts_splits=extract_paragraphs(texts,json_raw)
+        if len(Json["data"])!=len(txts_splits):
+            print("len(Json)!=len(txts_splits)")
+            return 
+        Documents=[]
         for i in range(len(Json["data"])):
+
             documents.append(
                 Document(
                     page_content=Json["data"][i]["s"],
@@ -168,11 +168,14 @@ class RAG:
             try:
                 # 1. 解析输入JSON
                 input_json = json.loads(json_raw, strict=False)
+
                 print(f"input_json item count {len(input_json)}")
+
                 if not isinstance(input_json, list):
                     raise ValueError("Input JSON should be a list of segments")
 
                 # 2. 构建完整文本
+
                 full_text = "\n".join(seg.get("context", "") for seg in input_json)
                 print(f"full_text {len(full_text)}")
 
@@ -190,12 +193,14 @@ class RAG:
                 if "data" not in ret_json or not isinstance(ret_json["data"], list):
                     raise ValueError("Invalid response structure: missing 'data' array")
 
+
                 # 6. 分割文本并验证长度
                 txts_splits = extract_paragraphs(full_text, ret_json_raw)
                 if len(ret_json["data"]) != len(txts_splits):
                     raise ValueError(
                         f"Data length mismatch: {len(ret_json['data'])} vs {len(txts_splits)}"
                     )
+
 
                 # 7. 构建文档集合
                 documents = []
@@ -253,6 +258,7 @@ class RAG:
 
         # 8. 存储文档
         if documents:
+
             # 原始图片数据, 添加到数据库
             self.save_image_raw_datas_to_db(input_json)
             # 总结图片数据, 添加到数据库

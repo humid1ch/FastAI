@@ -237,54 +237,63 @@ def extract_json_raw(text):
     return text[start_idx : end_idx + 1]
 
 
-def embeddings():
-    from langchain_huggingface import HuggingFaceEmbeddings
+def default_embedding(): 
+    import os 
+    # 临时禁用数据集下载、模型下载和 Hub 相关请求 
+    os.environ["HF_DATASETS_OFFLINE"]   = "1" 
+    os.environ["TRANSFORMERS_OFFLINE"]   = "1" 
+    os.environ["HF_HUB_OFFLINE"]   = "1" 
+ 
+    from langchain_huggingface import HuggingFaceEmbeddings 
+    # 修正 model_kwargs 的语法错误 
+    ret =  HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2", cache_folder="D:/wr/langchain/src/models", model_kwargs = {'device': 'cuda'}) 
+ 
+    # 恢复在线模式 
+    os.environ["HF_DATASETS_OFFLINE"]   = "0" 
+    os.environ["TRANSFORMERS_OFFLINE"]   = "0" 
+    os.environ["HF_HUB_OFFLINE"]   = "0" 
+ 
+    return ret 
 
-    return HuggingFaceEmbeddings(
-        model_name="sentence-transformers/all-MiniLM-L6-v2",
-        cache_folder="D:/wr/langchain/src/models",
-        model_kwargs={"device": "cuda"},
-    )
 
 
 def extract_paragraphs(content_str, json_str):
     """
-    根据之前约定的json格式划分原始文本
+        根据之前约定的json格式划分原始文本
     """
     import json
-
     # 解析JSON字符串
     try:
         data = json.loads(json_str)
     except json.JSONDecodeError:
         raise ValueError("Invalid JSON string")
-
+    
     # 获取data列表
     data_list = data.get("data", [])
     if not data_list:
         return []
-
+    
     result = []
-
+    
     for item in data_list:
         b = item.get("b", "")
         e = item.get("e", "")
-
+        
         if not b or not e:
             continue
-
+        
         # 查找开始和结束位置
         start_idx = content_str.find(b)
         end_idx = content_str.find(e)
-
+        
         if start_idx == -1 or end_idx == -1:
             continue
-
+        
         # 计算结束位置，加上结束字符串的长度
         end_idx += len(e)
-
+        
         # 提取段落
         paragraph = content_str[start_idx:end_idx]
         result.append(paragraph)
-
+    
     return result

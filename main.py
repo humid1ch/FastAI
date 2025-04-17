@@ -1,6 +1,5 @@
 import json
 import os
-
 from langchain_community.embeddings import DashScopeEmbeddings
 
 from Global.rag import RAG
@@ -14,6 +13,7 @@ from Global.utils import load_images
 embeddings = DashScopeEmbeddings(
     model="text-embedding-v3", dashscope_api_key="sk-8f1750138c094448a23c3cca28c3acce"
 )
+
 
 # rag=RAG("./chroma_db", embed)
 # rag.storage_txt(txt,"人物事件","斗破苍穹第一章", is_async=False)
@@ -48,3 +48,4 @@ print(rag.answer("什么是排序?"))
 print(rag.answer("什么是数字经济?"))
 print(rag.answer("不定积分的性质是什么?"))
 print(rag.answer("原函数与不定积分的概念是什么?定义是什么"))
+
