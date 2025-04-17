@@ -14,6 +14,7 @@ def image_prompt_by_url(image_url: str, query: str):
                     ]
     """
     from langchain_core.prompts import ChatPromptTemplate
+
     ChatPromptT = ChatPromptTemplate.from_messages(
         [
             ("system", "You are a helpful assistant."),
@@ -52,6 +53,7 @@ def image_prompt_by_path(path: str, query: str, model: str = "qwen-vl-max"):
     """
     import Global.utils as imagedata
     from langchain_core.prompts import ChatPromptTemplate
+
     image_data, image_path = imagedata.adjust_image(path, model)
     ChatPromptT = ChatPromptTemplate.from_messages(
         [
@@ -71,10 +73,10 @@ def image_prompt_by_path(path: str, query: str, model: str = "qwen-vl-max"):
     return ChatPromptT.invoke({"query": query})
 
 
-
 def image_recognition_prompt(image_type, base64_image, image_name):
-    from langchain_core.messages  import SystemMessage
+    from langchain_core.messages import SystemMessage
     from langchain_core.messages import HumanMessage
+
     return [
         SystemMessage(
             content=[
@@ -97,19 +99,20 @@ def image_recognition_prompt(image_type, base64_image, image_name):
                         1. 截图的文件名
                         2. 图片所属的PPT文件名及页码, 即截图的实际来源
                         3. 截图的时间
-                        4. PPT章节
-                        5. PPT标题
-                        6. 图片中完整、详细、条理清晰、逻辑清晰的文本内容, 不要做不必要的增删改
+                        4. PPT标题
+                        5. 图片中完整、详细、条理清晰、逻辑清晰的文本内容, 不要做不必要的增删改
                         要求：
                         1. 所有输出均以绝对纯净的原始JSON字符串格式输出。输出内容禁止以任何形式的代码块进行包装。
-                        2. 图片的文件名在"filename"键的值中描述。
-                        3. 截图的时间在"date"键的值中描述。
+                        2. 图片的文件名, 在"filename"键的值中描述。
+                        2. 图片中所述的PPT标题, 在"title"键的值中描述, 如果图片本身不存在标题, 结合图片内容自拟一个
+                        3. 图片中的完整详细内容, 在“context”键的值中描述。
                         4. 图片的所属来源(PPT文件名及页码), 在"source"键的值中描述。
-                        7. 图片的完整详细内容在“context”键的值中描述
-                        8. 如果图片中存在数学公式, 请将公式输出为完整有效的 LaTeX 语法格式
+                        5. 截图的时间在"date"键的值中描述。
+                        6. 如果图片中存在数学公式, 请将公式输出为完整有效的 LaTeX 语法格式
                         即完整的输出格式如下：
                         '{{
                             "filename": "不断促进全体人民共同富裕_pptx_第三页.jpeg",
+                            "title": "不断促进全体人民共同富裕"
                             "context" : "xxxxxxxxx",
                             "source": "不断促进全体人民共同富裕_pptx_第3页",
                             "date": "2025-01-01 13:44:38"
@@ -152,6 +155,7 @@ def text_split_prompt1(
     Prompt
     """
     from langchain_core.prompts import ChatPromptTemplate
+
     ChatPromptT = ChatPromptTemplate.from_messages(
         [
             (
@@ -243,6 +247,7 @@ def text_split_prompt2(
     文本内容: {text}
     """
     from langchain_core.prompts import ChatPromptTemplate
+
     ChatPromptT = ChatPromptTemplate.from_messages(
         [
             ("system", "你是一个文本处理AI，需要按语义划分段落并返回JSON。"),
@@ -289,6 +294,7 @@ def text_split_prompt3(
     Prompt
     """
     from langchain_core.prompts import ChatPromptTemplate
+
     ChatPromptT = ChatPromptTemplate.from_messages(
         [
             (
@@ -345,6 +351,7 @@ def text_split_prompt(
     Prompt
     """
     from langchain_core.prompts import ChatPromptTemplate
+
     ChatPromptT = ChatPromptTemplate.from_messages(
         [
             (
@@ -367,12 +374,13 @@ def text_split_prompt(
         {"text": text, "length": length, "key": key, "format": format}
     )
 
+
 def json_split_prompt(
-        json: str,
-        context: str,
-        length: int,
-        key: str,
-        format: str = """
+    json: str,
+    context: str,
+    length: int,
+    key: str,
+    format: str = """
      示例
     输入的完整json为:
     [
@@ -434,7 +442,7 @@ def json_split_prompt(
             }
         ]
     }
-    """
+    """,
 ):
     """
     args
@@ -458,6 +466,7 @@ def json_split_prompt(
         Prompt
     """
     from langchain_core.prompts import ChatPromptTemplate
+
     ChatPromptT = ChatPromptTemplate.from_messages(
         [
             (
@@ -478,5 +487,11 @@ def json_split_prompt(
         ]
     )
     return ChatPromptT.invoke(
-        {"json": json, "length": length, "context": context, "key": key, "format": format}
+        {
+            "json": json,
+            "length": length,
+            "context": context,
+            "key": key,
+            "format": format,
+        }
     )
